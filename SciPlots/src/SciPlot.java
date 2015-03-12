@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -112,8 +113,9 @@ public class SciPlot extends Plot {
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       
       updateBlocksCoordinates();
+      
       //Draw plot
-      int[] plotCoords = blocksCoordinates[layout[0]];
+      int[] plotCoords = blockCoordinates[4];
       
       g2.setFont(this.xLabelFont); //Draw x-axis label
       g2.setColor(this.xLabelColor);
@@ -144,7 +146,7 @@ public class SciPlot extends Plot {
       
       xLabelWidth = g2.getFontMetrics().stringWidth(xLabel);
       xLabelHeight = (int)g2.getFont().getLineMetrics(xLabel, g2.getFontRenderContext()).getHeight();
-      if(this.xAxisSide==Plot.TEXT_TO_BOTTOM){
+      if(this.xAxisSide==Plot.X_AXIS_TO_BOTTOM){
     	  g2.drawString(xLabel, plotCoords[0]+(plotCoords[2]/2)-xLabelWidth/2, plotCoords[1]+ plotCoords[3]-(xLabelHeight/2));
       }else{
     	  g2.drawString(xLabel, plotCoords[0]+(plotCoords[2]/2)-xLabelWidth/2, plotCoords[1]+ xLabelHeight);
@@ -157,7 +159,7 @@ public class SciPlot extends Plot {
       yScale =1;
       int flip;
       
-      if(yAxisSide == Plot.TEXT_TO_LEFT){
+      if(yAxisSide == Plot.Y_AXIS_TO_LEFT){
     	  flip = -90;
       }else{
     	  flip = 90;
@@ -195,7 +197,7 @@ public class SciPlot extends Plot {
       yLabelWidth = (int) gv.getPixelBounds(null, 0, 0).getHeight();
       yLabelHeight = (int)gv.getPixelBounds(null, 0, 0).getWidth();
       
-      if(yAxisSide == Plot.TEXT_TO_LEFT){
+      if(yAxisSide == Plot.Y_AXIS_TO_LEFT){
     	  g2.drawString(yLabel, plotCoords[0]+yLabelHeight, plotCoords[1]+(plotCoords[3]/2)+(yLabelWidth/2));
       }else{
     	  g2.drawString(yLabel, plotCoords[0]+plotCoords[2]-yLabelHeight, plotCoords[1]+(plotCoords[3]/2)-(yLabelWidth/2));
@@ -210,7 +212,6 @@ public class SciPlot extends Plot {
                      int heightPlot =(plotCoords[3]-(xLabelHeight*4))/nCol;
                      int xPlot = (plotCoords[0]+(yLabelHeight*2))+(widthPlot*i);
                      int yPlot = (plotCoords[1]+(xLabelHeight*2))+(heightPlot*j);
-              
                      g2.drawRect(xPlot,yPlot,widthPlot,heightPlot);
     			 }
     			 cont++;
@@ -220,7 +221,21 @@ public class SciPlot extends Plot {
       
       //Draw legend
       if(isLegendEnabled){
-	      int[] legendCord =  blocksCoordinates[layout[1]];
+    	  
+    	  int[] legendCord=null;
+    	  
+    	  if(legendSide == LEGEND_TO_RIGHT){
+    		  legendCord =  blockCoordinates[2];
+    	  }else{
+    		  if(legendSide == LEGEND_TO_LEFT){
+    			  legendCord =  blockCoordinates[0];
+    		  }else{
+    			  if(legendSide == LEGEND_TO_BOTTOM){
+    				  legendCord =  blockCoordinates[1];
+    			  }
+    		  }
+    	  }
+	      
 	      g2.setFont(legendTitleFont);
 	      legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, g2.getFontRenderContext()).getHeight();
 	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
@@ -268,7 +283,7 @@ public class SciPlot extends Plot {
 		      
 		      g2.setFont(legendTextFont.deriveFont(tx1));
 		      g2.setColor(legendTextColor);
-		      for(int i=1;i<=this.fillLevels.length;i++){
+		      for(int i=1;i<=fillLevels.length;i++){
 		    	  int tmp = (int)g2.getFont().getLineMetrics(fillLevels[i-1], g2.getFontRenderContext()).getHeight();
 		    	  int yPos = legendCord[1]+(legendCord[3]/2)-(legendHeight/2) + legendTitleHeight + (legendTitleHeight/2)+(int)(tmp*1.5)*i;
 		    	  g2.drawString(fillLevels[i-1], legendCord[0]+(int)(legendCord[2]/2)-(int)(legendTitleWidth/2)+(int)(tmp*1.5),yPos);
@@ -278,11 +293,11 @@ public class SciPlot extends Plot {
 	    	  if(legendOrientation == Plot.HORIZONTAL_LEGEND){
 	    		  int legendTextHeight = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
 	    		  for(int i=0;i<fillLevels.length;i++){
-	    			  int legendTextWidth = g2.getFontMetrics().stringWidth(legendTitle);
+	    			  int legendTextWidth = g2.getFontMetrics().stringWidth(fillLevels[i]);
 	    			  legendWidth=legendWidth + legendTextWidth;
 	    		  }
-	    		  legendWidth = legendWidth + (legendTextHeight*fillLevels.length) + (legendTextHeight*fillLevels.length)/2;
-	    		  legendHeight = legendTitleHeight + (int)(legendTitleHeight/2)+ legendTextHeight;
+	    		  
+	    		  legendHeight = legendTextHeight + legendTitleHeight + legendTitleHeight/2;
 	    		  g2.setFont(legendTitleFont.deriveFont(tx1));
 	    		  g2.setColor(legendTitleColor);
 	    		  g2.drawString(legendTitle, legendCord[0]+(legendCord[2]/2)-(legendWidth/2)+ (legendWidth/2), legendCord[1]+(legendCord[3]/2));
@@ -295,7 +310,7 @@ public class SciPlot extends Plot {
       //Draw title
       g2.setFont(this.mainFont);
       g2.setColor(titleColor);
-      int[] titleCoords = blocksCoordinates[layout[2]];
+      int[] titleCoords = blockCoordinates[3];
       titleWidth = g2.getFontMetrics().stringWidth(mainTitle);
       titleHeight = (int)g2.getFont().getLineMetrics(mainTitle, g2.getFontRenderContext()).getHeight();
       
@@ -512,6 +527,7 @@ public class SciPlot extends Plot {
 	      mainPanel.setXLabel("Avg of log per million of reads");
 	      mainPanel.setYLabel("log2 of fold change");
 	      mainPanel.setPlotTitle("DE expression analysis");
+	      mainPanel.setLegendSide(Plot.LEGEND_TO_RIGHT);
 	      mainPanel.setLegendOrientation(Plot.HORIZONTAL_LEGEND);
 	      mainPanel.setPlotSubtitle("Super subtítulo innecesariamente largo y complejo de prueba");
 	      mainPanel.setLegendTitle("Title of the legend");

@@ -11,21 +11,25 @@ public class Plot extends JPanel {
 	public final static int VPOS=1;
 	public final static int HPOS=2;
 	
-	public final static int TEXT_TO_TOP=1;
-	public final static int TEXT_TO_BOTTOM=0;
+	public final static int X_AXIS_TO_TOP=1;
+	public final static int X_AXIS_TO_BOTTOM=0;
 	
-	public final static int TEXT_TO_LEFT=1;
-	public final static int TEXT_TO_RIGHT=0;
+	public final static int Y_AXIS_TO_LEFT=1;
+	public final static int Y_AXIS_TO_RIGHT=0;
 	
 	public final static int VERTICAL_LEGEND=0;
 	public final static int HORIZONTAL_LEGEND=1;
+	
+	public final static int LEGEND_TO_LEFT=0;
+	public final static int LEGEND_TO_RIGHT=1;
+	public final static int LEGEND_TO_BOTTOM=2;
 
 	//MARGINS
 	protected int leftMargin;
 	protected int bottomMargin;
 	protected int rightMargin;
 	protected int topMargin;
-	protected int[] margins = new int[]{5,5};
+	protected int[] margins = new int[]{5,5,5,5};
 	protected int[] xLim;
 	protected int[] yLim;
 	
@@ -51,18 +55,14 @@ public class Plot extends JPanel {
 	
 	//ORIENTATION and LAYOUT
 	protected int plotOrientation = VPOS;
-	protected int yAxisSide = TEXT_TO_LEFT;
-	protected int xAxisSide = TEXT_TO_BOTTOM;
-	protected int[][] lMat=new int[][]{{0,3,0},
-									   {4,1,2},
-									   {0,5,0}};
-	//arreglar ancho y largo de la matriz
-	protected float[] lWidth= new float[]{0.025f,0.025f,0.20f};
-	protected float[] lHeight=new float[]{0.025f,0.025f,0.20f};
+	protected int yAxisSide = Y_AXIS_TO_LEFT;
+	protected int xAxisSide = X_AXIS_TO_BOTTOM;
+    protected int legendSide = LEGEND_TO_LEFT;
 	protected int legendOrientation=VERTICAL_LEGEND;
 	
 	//COORDINATES
-	protected int[][] blocksCoordinates=new int[(lMat.length*lMat[0].length)][4];
+	protected int[][] blockCoordinates = new int[5][4];
+	protected float[] props = new float[]{0.15f,0.15f,0.15f,0.15f};
 	protected int[] legendPos;
 	
 	//TEXT
@@ -204,6 +204,14 @@ public class Plot extends JPanel {
 	}
 	
 	/**
+	 * Set the side where the legend will be drawn 
+	 * @param side
+	 */
+	public void setLegendSide(int side){
+		legendSide = side;
+	}
+	
+	/**
 	 * Set font size of title of the legend
 	 * @param size
 	 */
@@ -309,14 +317,6 @@ public class Plot extends JPanel {
 		legendPos[1]=y;
 	}
 	
-	// Explicar denuevo como funciona el layout matrix
-	/**
-	 * 
-	 * @param order
-	 */
-	public void setLayoutMatrix(int[][] order){
-		lMat=order;
-	}
 	
 	/**
 	 * Add a vertical line to the plot
@@ -340,24 +340,6 @@ public class Plot extends JPanel {
 	 */
 	public void setOrientation(int orientation){
 		this.plotOrientation=orientation;
-	}
-	
-	// vai a tener que explicar denuevo como funciona el lwidth
-	/**
-	 * 
-	 * @param lwidth 
-	 */
-	public void setLayoutWidth(float[] lwidth){
-		this.lWidth=lwidth;
-	}
-	
-	// vai a tener que explicar denuevo como funciona el lwidth
-	/**
-	 * 
-	 * @param lwidth 
-	 */
-	public void setLayoutHeight(float[] lHeight){
-		this.lHeight=lHeight;
 	}
 	
 	/**
@@ -471,17 +453,31 @@ public class Plot extends JPanel {
 	 */
 	protected void updateBlocksCoordinates(){
 		
-		if(this.lMat.length == lHeight.length && lMat[0].length==lWidth.length){
-			for(int i=0;i<lWidth.length;i++){
-				for(int j=0;j<lHeight.length;j++){
-					if(i==0 && j==0){
-						System.out.println("hello gitahub");
-					}
-				}
-			}
-		}else{
-			//trow alguna excepción
-		}
+		blockCoordinates[0][0]=0;
+		blockCoordinates[0][1]=0;
+		blockCoordinates[0][2]=(int)(getWidth()*props[0]);
+		blockCoordinates[0][3]=getHeight();
+		
+		blockCoordinates[1][0]=0;
+		blockCoordinates[1][1]=(int)(getHeight()-(getHeight()*props[1]));
+		blockCoordinates[1][2]=getWidth();
+		blockCoordinates[1][3]=(int)(getHeight()*props[1]);
+		
+		blockCoordinates[2][0]= getWidth()- (int)(getWidth()*props[2]);
+		blockCoordinates[2][1]= 0;
+		blockCoordinates[2][2]=(int)(getWidth()*props[2]);
+		blockCoordinates[2][3]=getHeight();
+		
+		blockCoordinates[3][0]=0;
+		blockCoordinates[3][1]=0;
+		blockCoordinates[3][2]=getWidth();
+		blockCoordinates[3][3]=(int)(getHeight()*props[3]);
+		
+		blockCoordinates[4][0]=blockCoordinates[0][2];
+		blockCoordinates[4][1]=(int)(getHeight()*props[3]);
+		blockCoordinates[4][2]= getWidth()- blockCoordinates[0][2] - blockCoordinates[2][2];
+		blockCoordinates[4][3]= getHeight() - blockCoordinates[1][3] - (int)(getHeight()*props[3]);
+		
 	}
 	
 	@Override
