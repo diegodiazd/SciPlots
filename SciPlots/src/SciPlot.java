@@ -4,7 +4,11 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -240,7 +244,49 @@ public class SciPlot extends Plot {
 	      legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, g2.getFontRenderContext()).getHeight();
 	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
 	      
-	      xScale=1;
+	      
+	      
+	      //Cut the string if its width doesn't fit with the width of the block
+	      if(legendTitleWidth > legendCord[2]){
+	    	  AttributedString attTitleLegend = new AttributedString(legendTitle);
+	    	  LineBreakMeasurer lineMeasurer = null;
+	    	  int paragraphStart = 0;
+	    	  int paragraphEnd=0;
+	    	  float drawPosY = legendCord[0]+ legendCord[1]/2+legendTitleHeight;
+	    	  
+	          if (lineMeasurer == null) {
+	              AttributedCharacterIterator paragraph = attTitleLegend.getIterator();
+	              paragraphStart = paragraph.getBeginIndex();
+	              paragraphEnd = paragraph.getEndIndex();
+	              frc = g2.getFontRenderContext();
+	              lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+	          }
+	          
+	          lineMeasurer.setPosition(paragraphStart);
+	          
+	          while (lineMeasurer.getPosition() < paragraphEnd) {
+	        	  System.out.println("asdas");
+	              TextLayout layout = lineMeasurer.nextLayout(legendCord[2]);
+
+	              // Compute pen x position. If the paragraph is right-to-left we
+	              // will align the TextLayouts to the right edge of the panel.
+	              // Note: this won't occur for the English text in this sample.
+	              // Note: drawPosX is always where the LEFT of the text is placed.
+	              float drawPosX = layout.isLeftToRight()
+	                  ? 0 : legendCord[2] - layout.getAdvance();
+
+	              // Move y-coordinate by the ascent of the layout.
+	              drawPosY += layout.getAscent();
+
+	              // Draw the TextLayout at (drawPosX, drawPosY).
+	              layout.draw(g2, drawPosX, drawPosY);
+
+	              // Move y-coordinate in preparation for next layout.
+	              drawPosY += layout.getDescent() + layout.getLeading();
+	          }
+	      }
+	      
+	      /*xScale=1;
 	      yScale=1;
 	      
 	      if(checkScale){
@@ -297,13 +343,28 @@ public class SciPlot extends Plot {
 	    			  legendWidth=legendWidth + legendTextWidth;
 	    		  }
 	    		  
-	    		  legendHeight = legendTextHeight + legendTitleHeight + legendTitleHeight/2;
+	    		  int tmp = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
+	    		  legendHeight = legendTextHeight + 2*legendTitleHeight;
+	    		  legendWidth = legendWidth + tmp*fillLevels.length + tmp*(fillLevels.length-1) + tmp/2*fillLevels.length;
+	    		  
+	    		  int xPos = legendCord[0]+(legendCord[2]/2)-(legendWidth/2);
+	    		  int stringPos = xPos + tmp + tmp/2;
+    			  g2.drawRect(xPos, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - tmp, tmp, tmp);
+ 		    	  g2.drawString(fillLevels[0], stringPos,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight);
+	    		  
+	    		  for(int i=1;i<=fillLevels.length-1;i++){
+	    			  int wordWidth = g2.getFontMetrics().stringWidth(fillLevels[i-1]);
+	    			  stringPos = stringPos + wordWidth + 2*tmp + tmp/2;
+	    			  g2.drawRect(stringPos - tmp - tmp/2, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - tmp, tmp, tmp);
+	 		    	  g2.drawString(fillLevels[i], stringPos ,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight);
+	 		      }
+	    		  
 	    		  g2.setFont(legendTitleFont.deriveFont(tx1));
 	    		  g2.setColor(legendTitleColor);
-	    		  g2.drawString(legendTitle, legendCord[0]+(legendCord[2]/2)-(legendWidth/2)+ (legendWidth/2), legendCord[1]+(legendCord[3]/2));
-	    		  g2.drawRect(legendCord[0]+(legendCord[2]/2)-legendWidth/2, legendCord[1]+legendCord[3]/2-(legendHeight/2), legendWidth, legendHeight);
+	    		  g2.drawString(legendTitle, legendCord[0]+(legendCord[2]/2)- legendTitleWidth/2, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendTitleHeight);
+	    		  //g2.drawRect(legendCord[0]+(legendCord[2]/2)-legendWidth/2, legendCord[1]+legendCord[3]/2-(legendHeight/2), legendWidth, legendHeight);
 	    	  }
-	      }
+	      }*/
       }
       //###############################################################
       
@@ -528,9 +589,9 @@ public class SciPlot extends Plot {
 	      mainPanel.setYLabel("log2 of fold change");
 	      mainPanel.setPlotTitle("DE expression analysis");
 	      mainPanel.setLegendSide(Plot.LEGEND_TO_RIGHT);
-	      mainPanel.setLegendOrientation(Plot.HORIZONTAL_LEGEND);
+	      mainPanel.setLegendOrientation(Plot.VERTICAL_LEGEND);
 	      mainPanel.setPlotSubtitle("Super subtítulo innecesariamente largo y complejo de prueba");
-	      mainPanel.setLegendTitle("Title of the legend");
+	      mainPanel.setLegendTitle("Titulo largo para ver que hacer");
 	      JFrame frame = new JFrame("DrawGraph");
 	      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	      frame.getContentPane().add(mainPanel);

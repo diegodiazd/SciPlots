@@ -3,6 +3,7 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.text.AttributedString;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
@@ -66,11 +67,11 @@ public class Plot extends JPanel {
 	protected int[] legendPos;
 	
 	//TEXT
-	protected String mainTitle="";
-	protected String mainSubtitle="";
-	protected String legendTitle="";
-	protected String yLabel="";
-	protected String xLabel="";
+	protected String mainTitle;
+	protected String mainSubtitle;
+	protected String legendTitle;
+	protected String yLabel;
+	protected String xLabel;
 	protected String[] legendLabels;
 	
 	//FONTS
@@ -184,7 +185,7 @@ public class Plot extends JPanel {
 	 * @param subtitle
 	 */
 	public void setPlotSubtitle(String subtitle){
-		this.mainSubtitle=subtitle;
+		this.mainSubtitle= subtitle;
 	}
 	
 	/**
