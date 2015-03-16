@@ -46,6 +46,31 @@ public class Plot extends JPanel {
 	protected boolean[] paintPlotBorder = new boolean[]{true,true,true,true};
 	
 	//COLORS
+	protected final Color[] defaultColorPallete = new Color[]{new Color(238,64,53),
+															  new Color(243,119,54),
+															  new Color(253,244,152),
+															  new Color(123,192,67),
+															  new Color(3,146,207),
+															  new Color(229,195,198),
+															  new Color(225,233,183),
+															  new Color(188,210,208),
+															  new Color(208,183,131),
+															  new Color(158,189,158),
+															  new Color(221,133,92),
+															  new Color(241,232,202),
+															  new Color(116,81,81),
+															  new Color(198,195,134),
+															  new Color(195,238,231),
+															  new Color(91,57,30),
+															  new Color(135,198,195),
+															  new Color(102,187,174),
+															  new Color(253,207,88),
+															  new Color(117,118,118),
+															  new Color(242,125,12),
+															  new Color(128,9,9),
+															  new Color(255,85,136),
+															  new Color(255,119,170),
+															  };
 	protected Color[] legendColors;
 	protected Color plotBackground=Color.white;
 	protected Color[] borderColors=new Color[]{Color.black,Color.black,Color.black,Color.black};
