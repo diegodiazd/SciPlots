@@ -1,14 +1,9 @@
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
-import java.awt.font.LineBreakMeasurer;
-import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
-import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,7 +78,7 @@ public class SciPlot extends Plot {
       numFill = getNumberOfLevels(this.fillValues);
       splittedFacetData = splitFacetData();
 
-     /* Iterator<Entry<String[],String[][]>> it = splittedFacetData.entrySet().iterator();
+      /*Iterator<Entry<String[],String[][]>> it = splittedFacetData.entrySet().iterator();
 
       while (it.hasNext()) {
     	  Map.Entry<String[],String[][]> e = (Map.Entry<String[],String[][]>)it.next();
@@ -103,25 +98,270 @@ public class SciPlot extends Plot {
    @Override
    protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      
-      int xLabelWidth,xLabelHeight,yLabelWidth,yLabelHeight;
-      int titleWidth,titleHeight,subtitleWidth,subtitleHeight;
-      int legendWidth=0,legendHeight=0, legendTitleHeight=0,legendTitleWidth=0;
-      double  wProp,hProp;
-      double xScale=1;
-      double yScale=1;
-      AffineTransform tx1;
-      GlyphVector gv;
-      FontRenderContext frc;
       Graphics2D g2 = (Graphics2D)g;
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      
       updateBlocksCoordinates();
+      drawPlot(g2);
+      drawLegend(g2);
+      drawTitle(g2);
+      checkScale = false;
+   }
+   
+   private int getNumberOfLevels(String[] array){
+	   HashMap<String,Integer> levels = new HashMap<String,Integer>();
+	   
+	   if(array == null){
+		   return 0;
+	   }
+	   
+	   for(int i=0;i<array.length;i++){
+		   levels.put(array[i], levels.get(array[i]));
+	   }
+	   return levels.size();
+   }
+   
+   private String[] getLevels(String[] array){
+	   HashMap<String,Integer> levels = new HashMap<String,Integer>();
+	   
+	   if(array == null){
+		   return null;
+	   }
+	   
+	   for(int i=0;i<array.length;i++){
+		   levels.put(array[i], levels.get(array[i]));
+	   }
+	   
+	   return levels.keySet().toArray(new String[levels.keySet().size()]);
+   }
+   
+   private HashMap<String,String[][]> splitFillData(){
+	   return null;
+   }
+   
+   private void drawTitle(Graphics2D g2){
+	   
+	   	  double xScale,yScale,wProp,hProp;
+	   	  int titleWidth, titleHeight, subtitleHeight,subtitleWidth;
+	   	  AffineTransform tx1;
+	      g2.setFont(mainFont);
+	      g2.setColor(titleColor);
+	      int[] titleCoords = blockCoordinates[3];
+	      titleWidth = g2.getFontMetrics().stringWidth(mainTitle);
+	      titleHeight = (int)g2.getFont().getLineMetrics(mainTitle, g2.getFontRenderContext()).getHeight();
+	      
+	      xScale=1;
+	      yScale=1;
+	      
+	      if(checkScale){
+	    	  xPropTitle = ((double)titleCoords[2]/(double)titleWidth); 
+	    	  yPropTitle = ((double)(titleCoords[3]/2)/(double)titleHeight);
+	      }
+	      
+	      wProp = ((double)titleCoords[2]/(double)titleWidth);
+	      hProp = ((double)(titleCoords[3]/2)/(double)titleHeight);
+
+	      
+	      if(wProp != xPropTitle){
+			  xScale = wProp/xPropTitle;
+		  }
+
+		  if(hProp != yPropTitle){
+			  yScale = hProp/yPropTitle;
+		  }
+	      
+	      tx1 = new AffineTransform();
+	      tx1.scale(xScale,yScale);
+	      g2.setFont(g2.getFont().deriveFont(tx1));
+	      
+	      titleWidth = g2.getFontMetrics().stringWidth(mainTitle);
+	      titleHeight = (int)g2.getFont().getLineMetrics(mainTitle, g2.getFontRenderContext()).getHeight();
+	      
+	      g2.drawString(mainTitle, titleCoords[0]+(titleCoords[2]/2)-titleWidth/2, titleCoords[1]+(titleCoords[3]*1/4)+(titleHeight/2));
+	      
+	      
+	      //Draw subtitle
+	      g2.setFont(this.mainSubFont);
+	      g2.setColor(subTitleColor);
+	      subtitleWidth = g2.getFontMetrics().stringWidth(mainSubtitle);
+	      subtitleHeight = (int)g2.getFont().getLineMetrics(mainSubtitle, g2.getFontRenderContext()).getHeight();
+	      
+	      xScale=1;
+	      yScale=1;
+	      
+	      if(checkScale){
+	    	  xPropSubtitle = ((double)titleCoords[2]/(double)subtitleWidth);
+	    	  yPropSubtitle = ((double)(titleCoords[3]/2)/(double)subtitleHeight);
+	      }
+	      
+	      wProp = ((double)titleCoords[2]/(double)subtitleWidth);
+	      hProp = ((double)(titleCoords[3]/2)/(double)subtitleHeight);
+	      
+	      if(wProp != xPropSubtitle){
+			  xScale = wProp/xPropSubtitle;
+		  }
+
+		  if(hProp != yPropSubtitle){
+			  yScale = hProp/yPropSubtitle;
+		  }
+	     
+	      tx1 = new AffineTransform();
+	      tx1.scale(xScale,yScale);
+	      g2.setFont(g2.getFont().deriveFont(tx1));
+	      
+	      subtitleWidth = g2.getFontMetrics().stringWidth(mainSubtitle);
+	      subtitleHeight = (int)g2.getFont().getLineMetrics(mainSubtitle, g2.getFontRenderContext()).getHeight();
+	      
+	      g2.drawString(mainSubtitle, titleCoords[0]+(titleCoords[2]/2)-(subtitleWidth/2), titleCoords[1]+(titleCoords[3]*3/4)+(subtitleHeight/2));
+	   
+   }
+   
+   private void drawLegend(Graphics2D g2){
+	   
+	   int legendTitleHeight,legendTitleWidth, legendTextHeight=0,legendHeight=0, legendWidth=0;
+	   double xScale, yScale, wProp, hProp;
+	   AffineTransform tx1;
+	   FontRenderContext frc = g2.getFontRenderContext();
+	   
+	   if(isLegendEnabled){
+    	  
+    	  int[] legendCord=null;
+    	  
+    	  if(legendSide == LEGEND_TO_RIGHT){
+    		  legendCord =  blockCoordinates[2];
+    	  }else{
+    		  if(legendSide == LEGEND_TO_LEFT){
+    			  legendCord =  blockCoordinates[0];
+    		  }else{
+    			  if(legendSide == LEGEND_TO_BOTTOM){
+    				  legendCord =  blockCoordinates[1];
+    			  }
+    		  }
+    	  }
+	      
+	      g2.setFont(legendTitleFont);
+	      legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, frc).getHeight();
+	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
+	      
+	      xScale=1;
+	      yScale=1;
+	      
+	      if(checkScale){
+	    	  xPropLegendTitle = ((double)legendCord[2]/(double)legendTitleWidth); 
+	    	  yPropLengedTitle = ((double)legendCord[3]/2)/((double)legendTitleHeight);
+	      }
+	      
+	      wProp = ((double)legendCord[2]/(double)legendTitleWidth);
+	      hProp = ((double)(legendCord[3]/2)/(double)legendTitleHeight);
+	    
+	      if(wProp != xPropLegendTitle){
+			  xScale = wProp/xPropLegendTitle;
+		  }
+
+		  if(hProp != yPropLengedTitle){
+			  yScale = hProp/yPropLengedTitle;
+		  }
+		  
+		  tx1 = new AffineTransform();
+		  tx1.scale(xScale, yScale);
+		  
+		  g2.setFont(legendTitleFont.deriveFont(tx1));
+		  
+		  legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, g2.getFontRenderContext()).getHeight();
+	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
+	      
+	      if(legendTitleWidth > legendCord[2]){
+	      	int nLines = getNumberOfLines(legendTitle,legendCord[2], frc, g2.getFont());
+	      	legendTitleHeight = legendTitleHeight*nLines;
+	      	legendTitleWidth = legendCord[2];
+	      }
+	     
+	      g2.setFont(legendTextFont.deriveFont(tx1));
+	      g2.setColor(legendTextColor);
+		  
+	      if(legendOrientation==Plot.VERTICAL_LEGEND){
+		      int numberOfLines=0;
+		      legendTextHeight = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
+		      legendWidth = legendCord[2];
+		      int nLinesText[] = new int[fillLevels.length];
+		      for(int i=0;i<fillLevels.length;i++){
+		    	  int tmp = g2.getFontMetrics().stringWidth(fillLevels[i]);
+		    	  if(tmp > (legendWidth - legendTextHeight - (legendTextHeight/2))){
+		    		  int nLines = getNumberOfLines(fillLevels[i],(legendWidth - legendTextHeight - (legendTextHeight/2)),frc,g2.getFont());
+		    		  numberOfLines= numberOfLines+nLines;
+		    		  nLinesText[i] = nLines;
+		    	  }else{
+		    		  numberOfLines++;
+		    		  nLinesText[i]=0;
+		    	  }
+		      }
+		      
+		      legendHeight = legendTextHeight*numberOfLines + ((legendTextHeight/2)*(fillLevels.length-1)) + (legendTextHeight/2)+legendTitleHeight;
+		      
+		      int yPos = legendCord[1]+(legendCord[3]/2)-(legendHeight/2)+(int)(legendTextHeight*1.5) + legendTitleHeight;
+		      
+		      for(int i=1;i<=fillLevels.length;i++){
+		    	  int xPos = legendCord[0]+(int)(legendCord[2]/2)-(int)(legendWidth/2)+(int)(legendTextHeight*1.5);
+		    	  int tmp = g2.getFontMetrics().stringWidth(fillLevels[i-1]);
+		    	  g2.drawRect(legendCord[0]+(int)(legendCord[2]/2)-legendWidth/2, yPos-legendTextHeight, legendTextHeight, legendTextHeight);
+		    	  if(tmp > (legendWidth - legendTextHeight - (legendTextHeight/2))){
+		    		  drawWrappedString(fillLevels[i-1], (legendWidth - legendTextHeight - (legendTextHeight/2)), g2,xPos,yPos-legendTextHeight);
+		    		  yPos = yPos + (legendTextHeight*nLinesText[i-1]) + (legendTextHeight/2);
+		    	  }else{
+		    		  g2.drawString(fillLevels[i-1], xPos ,yPos);
+		    		  yPos = yPos + (int)(legendTextHeight*1.5); 
+		    	  }
+		      }
+	      }else{
+	    	  if(legendOrientation == Plot.HORIZONTAL_LEGEND){
+	    		  for(int i=0;i<fillLevels.length;i++){
+	    			  int legendTextWidth = g2.getFontMetrics().stringWidth(fillLevels[i]);
+	    			  legendWidth=legendWidth + legendTextWidth;
+	    		  }
+	    		  
+	    		  int tmp = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
+	    		  legendHeight = legendTextHeight + 2*legendTitleHeight;
+	    		  legendWidth = legendWidth + tmp*fillLevels.length + tmp*(fillLevels.length-1) + tmp/2*fillLevels.length;
+	    		  
+	    		  int xPos = legendCord[0]+(legendCord[2]/2)-(legendWidth/2);
+	    		  int stringPos = xPos + tmp + tmp/2;
+    			  g2.drawRect(xPos, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - (tmp/2), tmp, tmp);
+ 		    	  g2.drawString(fillLevels[0], stringPos,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight + (tmp/2));
+	    		  
+	    		  for(int i=1;i<=fillLevels.length-1;i++){
+	    			  int wordWidth = g2.getFontMetrics().stringWidth(fillLevels[i-1]);
+	    			  stringPos = stringPos + wordWidth + 2*tmp + tmp/2;
+	    			  g2.drawRect(stringPos - tmp - tmp/2, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - (tmp/2), tmp, tmp);
+	 		    	  g2.drawString(fillLevels[i], stringPos ,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight + (tmp/2));
+	 		      }
+	    		  
+	    		  g2.setFont(legendTitleFont.deriveFont(tx1));
+	    		  g2.setColor(legendTitleColor);
+	    	  }
+	      }
+	      g2.setFont(legendTitleFont.deriveFont(tx1));
+	      g2.setColor(legendTitleColor);
+	      float x = legendCord[0]+(legendCord[2]/2)- legendTitleWidth/2;
+	      float y = legendCord[1]+legendCord[3]/2-(legendHeight/2);
+	      drawWrappedString(legendTitle, legendTitleWidth, g2,x,y);
+	   }  
+   }
+   
+   private void drawPlot(Graphics2D g2){
       
-      //Draw plot
+	  int xLabelWidth,xLabelHeight,yLabelWidth,yLabelHeight;
+	  double  wProp,hProp;
+	  double xScale=1;
+	  double yScale=1;
+	  AffineTransform tx1;
+	  GlyphVector gv;
+	  FontRenderContext frc;
+	   
+	  //Draw plot
       int[] plotCoords = blockCoordinates[4];
       
-      g2.setFont(this.xLabelFont); //Draw x-axis label
+      //Draw x-axis label
+      //############################
+      g2.setFont(this.xLabelFont); 
       g2.setColor(this.xLabelColor);
       xLabelWidth = g2.getFontMetrics().stringWidth(xLabel);
       xLabelHeight = (int)g2.getFont().getLineMetrics(xLabel, g2.getFontRenderContext()).getHeight();
@@ -156,8 +396,9 @@ public class SciPlot extends Plot {
     	  g2.drawString(xLabel, plotCoords[0]+(plotCoords[2]/2)-xLabelWidth/2, plotCoords[1]+ xLabelHeight);
       }
       
-      //################################################################################################
-      g2.setFont(yLabelFont); //Draw y-axis label
+      //Draw y-axis label
+      //#########################
+      g2.setFont(yLabelFont); 
       g2.setColor(yLabelColor);
       xScale =1;
       yScale =1;
@@ -222,254 +463,6 @@ public class SciPlot extends Plot {
     		  }
     	  }
       }
-      
-      //Draw legend
-      if(isLegendEnabled){
-    	  
-    	  int[] legendCord=null;
-    	  
-    	  if(legendSide == LEGEND_TO_RIGHT){
-    		  legendCord =  blockCoordinates[2];
-    	  }else{
-    		  if(legendSide == LEGEND_TO_LEFT){
-    			  legendCord =  blockCoordinates[0];
-    		  }else{
-    			  if(legendSide == LEGEND_TO_BOTTOM){
-    				  legendCord =  blockCoordinates[1];
-    			  }
-    		  }
-    	  }
-	      
-	      g2.setFont(legendTitleFont);
-	      legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, g2.getFontRenderContext()).getHeight();
-	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
-	      
-	      
-	      
-	      //Cut the string if its width doesn't fit with the width of the block
-	      if(legendTitleWidth > legendCord[2]){
-	    	  AttributedString attTitleLegend = new AttributedString(legendTitle);
-	    	  LineBreakMeasurer lineMeasurer = null;
-	    	  int paragraphStart = 0;
-	    	  int paragraphEnd=0;
-	    	  float drawPosY = legendCord[0]+ legendCord[1]/2+legendTitleHeight;
-	    	  
-	          if (lineMeasurer == null) {
-	              AttributedCharacterIterator paragraph = attTitleLegend.getIterator();
-	              paragraphStart = paragraph.getBeginIndex();
-	              paragraphEnd = paragraph.getEndIndex();
-	              frc = g2.getFontRenderContext();
-	              lineMeasurer = new LineBreakMeasurer(paragraph, frc);
-	          }
-	          
-	          lineMeasurer.setPosition(paragraphStart);
-	          
-	          while (lineMeasurer.getPosition() < paragraphEnd) {
-	        	  System.out.println("asdas");
-	              TextLayout layout = lineMeasurer.nextLayout(legendCord[2]);
-
-	              // Compute pen x position. If the paragraph is right-to-left we
-	              // will align the TextLayouts to the right edge of the panel.
-	              // Note: this won't occur for the English text in this sample.
-	              // Note: drawPosX is always where the LEFT of the text is placed.
-	              float drawPosX = layout.isLeftToRight()
-	                  ? 0 : legendCord[2] - layout.getAdvance();
-
-	              // Move y-coordinate by the ascent of the layout.
-	              drawPosY += layout.getAscent();
-
-	              // Draw the TextLayout at (drawPosX, drawPosY).
-	              layout.draw(g2, drawPosX, drawPosY);
-
-	              // Move y-coordinate in preparation for next layout.
-	              drawPosY += layout.getDescent() + layout.getLeading();
-	          }
-	      }
-	      
-	      /*xScale=1;
-	      yScale=1;
-	      
-	      if(checkScale){
-	    	  xPropLegendTitle = ((double)legendCord[2]/(double)legendTitleWidth); 
-	    	  yPropLengedTitle = ((double)legendCord[3]/2)/((double)legendTitleHeight);
-	      }
-	      
-	      wProp = ((double)legendCord[2]/(double)legendTitleWidth);
-	      hProp = ((double)(legendCord[3]/2)/(double)legendTitleHeight);
-	    
-	      if(wProp != xPropLegendTitle){
-			  xScale = wProp/xPropLegendTitle;
-		  }
-
-		  if(hProp != yPropLengedTitle){
-			  yScale = hProp/yPropLengedTitle;
-		  }
-		  
-		  tx1 = new AffineTransform();
-		  tx1.scale(xScale, yScale);
-	      
-		  g2.setFont(g2.getFont().deriveFont(tx1));
-		  
-		  legendTitleHeight = (int)g2.getFont().getLineMetrics(legendTitle, g2.getFontRenderContext()).getHeight();
-	      legendTitleWidth = g2.getFontMetrics().stringWidth(legendTitle);
-	      legendHeight = legendHeight + legendTitleHeight + legendTitleHeight/2;
-	      g2.setFont(legendTextFont.deriveFont(tx1));
-	      
-	      if(legendOrientation==Plot.VERTICAL_LEGEND){
-		      for(int i=0;i<fillLevels.length;i++){ 	  
-		    	  int legendTextHeight = (int)g2.getFont().getLineMetrics(fillLevels[i], g2.getFontRenderContext()).getHeight();
-		    	  legendHeight =  legendHeight + legendTextHeight; 
-		      }
-		      
-		      legendHeight = legendHeight + (int)(legendHeight/2);
-		      g2.setFont(legendTitleFont.deriveFont(tx1));
-		      g2.setColor(legendTitleColor); 
-		      g2.drawString(legendTitle, legendCord[0]+(int)(legendCord[2]/2)-legendTitleWidth/2, 
-		    		  		legendCord[1]+(legendCord[3]/2)-legendHeight/2 + legendTitleHeight);
-		      
-		      g2.setFont(legendTextFont.deriveFont(tx1));
-		      g2.setColor(legendTextColor);
-		      for(int i=1;i<=fillLevels.length;i++){
-		    	  int tmp = (int)g2.getFont().getLineMetrics(fillLevels[i-1], g2.getFontRenderContext()).getHeight();
-		    	  int yPos = legendCord[1]+(legendCord[3]/2)-(legendHeight/2) + legendTitleHeight + (legendTitleHeight/2)+(int)(tmp*1.5)*i;
-		    	  g2.drawString(fillLevels[i-1], legendCord[0]+(int)(legendCord[2]/2)-(int)(legendTitleWidth/2)+(int)(tmp*1.5),yPos);
-		    	  g2.drawRect(legendCord[0]+(int)(legendCord[2]/2)-legendTitleWidth/2, yPos-tmp, tmp, tmp);
-		      }
-	      }else{
-	    	  if(legendOrientation == Plot.HORIZONTAL_LEGEND){
-	    		  int legendTextHeight = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
-	    		  for(int i=0;i<fillLevels.length;i++){
-	    			  int legendTextWidth = g2.getFontMetrics().stringWidth(fillLevels[i]);
-	    			  legendWidth=legendWidth + legendTextWidth;
-	    		  }
-	    		  
-	    		  int tmp = (int)g2.getFont().getLineMetrics(fillLevels[0], g2.getFontRenderContext()).getHeight();
-	    		  legendHeight = legendTextHeight + 2*legendTitleHeight;
-	    		  legendWidth = legendWidth + tmp*fillLevels.length + tmp*(fillLevels.length-1) + tmp/2*fillLevels.length;
-	    		  
-	    		  int xPos = legendCord[0]+(legendCord[2]/2)-(legendWidth/2);
-	    		  int stringPos = xPos + tmp + tmp/2;
-    			  g2.drawRect(xPos, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - tmp, tmp, tmp);
- 		    	  g2.drawString(fillLevels[0], stringPos,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight);
-	    		  
-	    		  for(int i=1;i<=fillLevels.length-1;i++){
-	    			  int wordWidth = g2.getFontMetrics().stringWidth(fillLevels[i-1]);
-	    			  stringPos = stringPos + wordWidth + 2*tmp + tmp/2;
-	    			  g2.drawRect(stringPos - tmp - tmp/2, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight - tmp, tmp, tmp);
-	 		    	  g2.drawString(fillLevels[i], stringPos ,legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendHeight);
-	 		      }
-	    		  
-	    		  g2.setFont(legendTitleFont.deriveFont(tx1));
-	    		  g2.setColor(legendTitleColor);
-	    		  g2.drawString(legendTitle, legendCord[0]+(legendCord[2]/2)- legendTitleWidth/2, legendCord[1]+legendCord[3]/2-(legendHeight/2) + legendTitleHeight);
-	    		  //g2.drawRect(legendCord[0]+(legendCord[2]/2)-legendWidth/2, legendCord[1]+legendCord[3]/2-(legendHeight/2), legendWidth, legendHeight);
-	    	  }
-	      }*/
-      }
-      //###############################################################
-      
-      //Draw title
-      g2.setFont(this.mainFont);
-      g2.setColor(titleColor);
-      int[] titleCoords = blockCoordinates[3];
-      titleWidth = g2.getFontMetrics().stringWidth(mainTitle);
-      titleHeight = (int)g2.getFont().getLineMetrics(mainTitle, g2.getFontRenderContext()).getHeight();
-      
-      xScale=1;
-      yScale=1;
-      
-      if(checkScale){
-    	  xPropTitle = ((double)titleCoords[2]/(double)titleWidth); 
-    	  yPropTitle = ((double)(titleCoords[3]/2)/(double)titleHeight);
-      }
-      
-      wProp = ((double)titleCoords[2]/(double)titleWidth);
-      hProp = ((double)(titleCoords[3]/2)/(double)titleHeight);
-
-      
-      if(wProp != xPropTitle){
-		  xScale = wProp/xPropTitle;
-	  }
-
-	  if(hProp != yPropTitle){
-		  yScale = hProp/yPropTitle;
-	  }
-      
-      tx1 = new AffineTransform();
-      tx1.scale(xScale,yScale);
-      g2.setFont(g2.getFont().deriveFont(tx1));
-      
-      titleWidth = g2.getFontMetrics().stringWidth(mainTitle);
-      titleHeight = (int)g2.getFont().getLineMetrics(mainTitle, g2.getFontRenderContext()).getHeight();
-      
-      g2.drawString(mainTitle, titleCoords[0]+(titleCoords[2]/2)-titleWidth/2, titleCoords[1]+(titleCoords[3]*1/4)+(titleHeight/2));
-      
-      
-      //Draw subtitle
-      g2.setFont(this.mainSubFont);
-      g2.setColor(subTitleColor);
-      subtitleWidth = g2.getFontMetrics().stringWidth(mainSubtitle);
-      subtitleHeight = (int)g2.getFont().getLineMetrics(mainSubtitle, g2.getFontRenderContext()).getHeight();
-      
-      xScale=1;
-      yScale=1;
-      
-      if(checkScale){
-    	  xPropSubtitle = ((double)titleCoords[2]/(double)subtitleWidth);
-    	  yPropSubtitle = ((double)(titleCoords[3]/2)/(double)subtitleHeight);
-      }
-      
-      wProp = ((double)titleCoords[2]/(double)subtitleWidth);
-      hProp = ((double)(titleCoords[3]/2)/(double)subtitleHeight);
-      
-      if(wProp != xPropSubtitle){
-		  xScale = wProp/xPropSubtitle;
-	  }
-
-	  if(hProp != yPropSubtitle){
-		  yScale = hProp/yPropSubtitle;
-	  }
-     
-      tx1 = new AffineTransform();
-      tx1.scale(xScale,yScale);
-      g2.setFont(g2.getFont().deriveFont(tx1));
-      
-      subtitleWidth = g2.getFontMetrics().stringWidth(mainSubtitle);
-      subtitleHeight = (int)g2.getFont().getLineMetrics(mainSubtitle, g2.getFontRenderContext()).getHeight();
-      
-      g2.drawString(mainSubtitle, titleCoords[0]+(titleCoords[2]/2)-(subtitleWidth/2), titleCoords[1]+(titleCoords[3]*3/4)+(subtitleHeight/2));
-      checkScale = false;
-   }
-   
-   private int getNumberOfLevels(String[] array){
-	   HashMap<String,Integer> levels = new HashMap<String,Integer>();
-	   
-	   if(array == null){
-		   return 0;
-	   }
-	   
-	   for(int i=0;i<array.length;i++){
-		   levels.put(array[i], levels.get(array[i]));
-	   }
-	   return levels.size();
-   }
-   
-   private String[] getLevels(String[] array){
-	   HashMap<String,Integer> levels = new HashMap<String,Integer>();
-	   
-	   if(array == null){
-		   return null;
-	   }
-	   
-	   for(int i=0;i<array.length;i++){
-		   levels.put(array[i], levels.get(array[i]));
-	   }
-	   
-	   return levels.keySet().toArray(new String[levels.keySet().size()]);
-   }
-   
-   private HashMap<String,String[][]> splitFillData(){
-	   return null;
    }
    
    private HashMap<String[],String[][]> splitFacetData(){
@@ -590,8 +583,8 @@ public class SciPlot extends Plot {
 	      mainPanel.setPlotTitle("DE expression analysis");
 	      mainPanel.setLegendSide(Plot.LEGEND_TO_RIGHT);
 	      mainPanel.setLegendOrientation(Plot.VERTICAL_LEGEND);
-	      mainPanel.setPlotSubtitle("Super subtítulo innecesariamente largo y complejo de prueba");
-	      mainPanel.setLegendTitle("Titulo largo para ver que hacer");
+	      mainPanel.setPlotSubtitle("Super subtítulo");
+	      mainPanel.setLegendTitle("Titulo");
 	      JFrame frame = new JFrame("DrawGraph");
 	      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	      frame.getContentPane().add(mainPanel);
@@ -601,5 +594,4 @@ public class SciPlot extends Plot {
          }
       });
    }
-
 }

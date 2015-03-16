@@ -3,6 +3,12 @@ import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
@@ -63,7 +69,7 @@ public class Plot extends JPanel {
 	
 	//COORDINATES
 	protected int[][] blockCoordinates = new int[5][4];
-	protected float[] props = new float[]{0.15f,0.15f,0.15f,0.15f};
+	protected float[] props = new float[]{0.05f,0.05f,0.15f,0.08f};
 	protected int[] legendPos;
 	
 	//TEXT
@@ -479,6 +485,67 @@ public class Plot extends JPanel {
 		blockCoordinates[4][2]= getWidth()- blockCoordinates[0][2] - blockCoordinates[2][2];
 		blockCoordinates[4][3]= getHeight() - blockCoordinates[1][3] - (int)(getHeight()*props[3]);
 		
+	}
+	
+	/**
+	 * Draw wrapped text to certain width
+	 * @param string
+	 * @param width
+	 * @param g2
+	 * @param xPos
+	 * @param yPos
+	 */
+	protected void drawWrappedString(String string, int width, Graphics2D g2, float xPos, float yPos){
+		AttributedString attTitleLegend = new AttributedString(string);
+		attTitleLegend.addAttribute(TextAttribute.FONT, g2.getFont());
+		FontRenderContext frc = g2.getFontRenderContext();
+		LineBreakMeasurer lineMeasurer = null;
+		int paragraphStart = 0;
+		int paragraphEnd=0;
+  
+		if (lineMeasurer == null) {
+			AttributedCharacterIterator paragraph = attTitleLegend.getIterator();
+			paragraphStart = paragraph.getBeginIndex();
+			paragraphEnd = paragraph.getEndIndex();
+			lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+		}
+	   
+		lineMeasurer.setPosition(paragraphStart);
+		while (lineMeasurer.getPosition() < paragraphEnd) {
+			TextLayout layout = lineMeasurer.nextLayout(width);
+			yPos += layout.getAscent();
+			layout.draw(g2, xPos, yPos);
+			yPos += layout.getDescent() + layout.getLeading();
+		}
+	}
+   
+	/**
+	 * Get the number of lines of a wrapped text 
+	 * @param string
+	 * @param width
+	 * @param frc
+	 * @param f
+	 * @return
+	 */
+	protected int getNumberOfLines(String string, int width, FontRenderContext frc, Font f){
+		AttributedString attTitleLegend = new AttributedString(string);
+		LineBreakMeasurer lineMeasurer = null;
+		attTitleLegend.addAttribute(TextAttribute.FONT, f);
+		int paragraphStart = 0;
+		int paragraphEnd=0;
+		int cont=0;
+		if (lineMeasurer == null) {
+			AttributedCharacterIterator paragraph = attTitleLegend.getIterator();
+			paragraphStart = paragraph.getBeginIndex();
+			paragraphEnd = paragraph.getEndIndex();
+			lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+		}
+		lineMeasurer.setPosition(paragraphStart);
+		while (lineMeasurer.getPosition() < paragraphEnd) {
+			lineMeasurer.nextLayout(width);
+			cont++;
+		}
+		return cont;
 	}
 	
 	@Override
